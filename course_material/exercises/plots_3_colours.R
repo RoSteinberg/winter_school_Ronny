@@ -1,7 +1,7 @@
 # Script name
 # Author
 # Date
-
+rm()
 
 # Libraries ---------------------------------------------------------------
 
@@ -109,6 +109,25 @@ ggarrange(lm_1, lm_2)
 # Use a viridis colour palette against a default palette in a way that 
 # allows features in the data to be more pronounced
 
+lm_3 <- 
+  ggplot(data = penguins,
+       aes(x = body_mass_g, y = bill_length_mm)) +
+  geom_point(aes(colour = as.factor(species)))+
+  scale_colour_manual(values = c('#e87278', '#5e8436', '#8771de'),
+                      # How to change the legend text
+                      labels = c("Adelie", "Chinstrap", "Gentoo"))+
+  labs(x  = 'Body mass (g)', y  = 'Bill length (mm)', colour = 'Species')+
+  theme_bw()
+
+lm_4 <- 
+  ggplot(data = penguins,
+       aes(x = body_mass_g, y = bill_length_mm)) +
+  geom_point(aes(colour = as.factor(species)))+
+  scale_colour_viridis_d(option = "D")+
+  labs(x  = 'Body mass (g)', y  = 'Bill length (mm)', colour = 'Species')+
+  theme_bw()
+
+ggarrange(lm_3, lm_4)
 
 # Exercise 3 --------------------------------------------------------------
 
@@ -117,7 +136,34 @@ ggarrange(lm_1, lm_2)
 # http://www.sthda.com/english/articles/24-ggpubr-publication-ready-plots/76-add-p-values-and-significance-levels-to-ggplots/
 
 
-# BONUS -------------------------------------------------------------------
+library(readr)
+sst_NOAA <- read_csv("course_material/data/sst_NOAA.csv")
+sst_NOAA$site <- as.factor(sst_NOAA$site)
 
-# Create a correlogram
+NOAA_levels <- levels(sst_NOAA$site)
+my_comparisons <- list(c(NOAA_levels[1], NOAA_levels[2]), 
+                       c(NOAA_levels[2], NOAA_levels[3]),
+                       c(NOAA_levels[1], NOAA_levels[3]))
+ggplot(sst_NOAA,
+       aes(x = site, y = temp)) +
+  geom_boxplot(aes(fill = as.factor(site)), show.legend = F)+
+  stat_compare_means(method = "anova", colour = "grey50",
+                     label.x = 1.8, label.y = 32) +
+  # Add pairwise comparisons p-value
+  stat_compare_means(comparisons = my_comparisons,
+                     label.y = c(62, 64, 66)) +
+  # Perform t-tests between each group and the overall mean
+  stat_compare_means(label = "p.signif", 
+                     method = "t.test",
+                     ref.group = ".all.") + 
+  # Add horizontal line at base mean
+  geom_hline(yintercept = mean(sst_NOAA$temp, na.rm = T), 
+             linetype = 2) + 
+  scale_colour_manual(values = c('#e87278', '#5e8436', '#8771de'),
+                      labels = c("Med", "NW_Atl", "WA"))+
+  labs(x  = 'Site', y  = 'Temperature (°C)', colour = 'Site')+
+  theme_bw()
+
+
+# BONUS -------------------------------------------------------------------
 
