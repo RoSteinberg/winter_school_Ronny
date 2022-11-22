@@ -1,12 +1,15 @@
-# Script name
-# Author
-# Date
+# Maps Exercise 1
+# Ronny Steinberg
+# 2022-11-22
 
 
 # Libraries ---------------------------------------------------------------
 
 # Which libraries should be loaded?
-
+library(tidyverse)
+library(ggpubr)
+library(ggsn)
+library(palmerpenguins)
 
 # Data --------------------------------------------------------------------
 
@@ -17,7 +20,7 @@ map_data_world <- map_data("world")
 # Example -----------------------------------------------------------------
 
 # The basic map
-map_data_world %>% 
+map_data_world %>%
   filter(region == "Germany") %>% 
   ggplot(aes(x = long, y = lat)) +
   geom_polygon(aes(group = group))
@@ -43,4 +46,19 @@ map_data_world %>%
 # BONUS -------------------------------------------------------------------
 
 # Plot maps using Google Maps
+
+
+#--------------------------------
+
+earth_1 <- ggplot() +
+  # The global shape file
+  borders(fill = "grey70", colour = "black") +
+  # Equal sizing for lon/lat 
+  coord_equal()
+earth_1
+
+map_data('world') %>% 
+  select(83) %>% 
+  distinct() %>% 
+  arrange(83)
 
