@@ -26,6 +26,7 @@ sst_NOAA %>%
   summarise(mean_year = mean(year))
 
 
+
 # Exercise 1 --------------------------------------------------------------
 
 # Filter a dataset to have only data for WA from 2005-2010
