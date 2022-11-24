@@ -1,6 +1,6 @@
-# Script name
-# Author
-# Date
+# Tidy Excersice 3
+# Ronny Steinber
+# 23.11.2022
 
 
 # Libraries ---------------------------------------------------------------
