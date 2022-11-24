@@ -1,0 +1,278 @@
+---
+# title: Taming data
+format:
+  revealjs:
+    theme: FACE-IT_pres.scss
+    self-contained: true
+    transition: slide
+editor: source
+---
+
+# Taming data {background-color="#008980" style="text-align: center"}
+
+*Robert Schlegel*
+
+```{r tidy-2-opts, echo=FALSE}
+knitr::opts_chunk$set(
+  warning = FALSE, 
+  message = FALSE,
+  echo = TRUE
+)
+```
+
+## Problem
+
+-   Once the data are tidy, how do we manipulate them?
+-   Are there any consistent approaches to this?
+-   Can this be used to perform analyses?
+
+## Solution
+
+-   There are five primary functions we will focus on here
+-   We will see how the use of pre-existing logic tools can work for us
+-   We end with some examples of `summarise()`
+
+## Setup
+
+```{r}
+library(tidyverse) # All-in-one
+
+library(lubridate) # For working with dates
+
+load("../data/OISST_mangled.RData") # For examples
+```
+
+## **tidy workflow**
+
+The transformation of ones data should be the third step in any workflow, after the tidying of the data.
+
+```{r, echo = FALSE, out.width = "100%", fig.align = "center", fig.cap = "Data transforming in the data processing pipeline. Reproduced from [R for Data Science](http://r4ds.had.co.nz/workflow-basics.html)"}
+knitr::include_graphics("slide_images/data-science-wrangle.png")
+```
+
+## **tidy transformation**
+
+There are five primary data transformation functions that we will focus on here:  
+
+-   Arrange observations (rows) with `arrange()`  
+-   Filter observations (rows) with `filter()`  
+-   Select variables (columns) with`select()`  
+-   Create new variables (columns) with `mutate()`  
+-   Summarise data (rows+columns) with `summarise()`  
+
+## Comparison operators
+
+-   We use the assignment operator (`<-`) to assign code to an object in our environment
+-   Likewise, comparison operators are symbols used to compare different objects
+-   We will see these symbols often in the 'real world'
+
+## Comparison operators
+
+-   Greater than: `>`  
+-   Greater than or equal to: `>=`  
+-   Less than: `<`  
+-   Less than or equal to: `<=`  
+-   Equal to: `==`  
+-   Not equal to: `!=`  
+
+## Comparison operators
+
+It is important here to note that `==` is for comparisons and `=` is for maths. They are **not** interchangeable, as we may see in the following code chunk. This is one of the more common mistakes one makes when writing code.
+
+```{r, error=TRUE}
+OISST1 %>% 
+  filter(site = "Svalbard")
+```
+
+## Logical operators
+
+-   Comparison operators are used to make direct comparisons between specific things
+-   Logical operators are used more broadly when making logical arguments
+-   R makes use of the same *Boolean logic* as many other platforms, including Google
+
+## Logical operators
+
+-   and: `&`  
+-   or: `|`  
+-   not: `!`  
+  
+## Logical operators
+
+```{r}
+OISST1_sub <- OISST1 %>% 
+  filter(site == "Med", month(t) == 12 | month(t) == 1)
+```
+
+::: columns
+::: {.column}
+```{r}
+head(OISST1_sub)
+```
+:::
+
+::: {.column}
+```{r}
+tail(OISST1_sub)
+```
+:::
+:::
+
+## `arrange()` observation (row) 
+
+-   `arrange()` observations (rows) based on the variables (columns) it is given
+-   If we are concerned with ties we provide additional columns
+-   The importance of arranging the rows is given in order from left to right
+-   Note that `NA` values will get sent to the bottom
+
+## `arrange()` observation (row) 
+
+::: columns
+::: {.column}
+```{r}
+OISST1 %>% 
+  arrange(site, temp) %>% 
+  head()
+```
+:::
+
+::: {.column}
+```{r}
+OISST1 %>% 
+  arrange(site, desc(temp)) %>%
+  head()
+```
+:::
+:::
+
+## `filter()` observation (row)
+
+-   `filter()` is generally used the most of all transformations
+-   It allows us to dramatically reshape a dataframe
+-   Note that this automatically removes rows with `NA`
+
+## `filter()` observation (row)
+
+::: columns
+::: {.column}
+```{r}
+OISST1 %>% 
+  filter(site == "Med", 
+         year(t) == 2008) %>% 
+  head()
+```
+:::
+
+::: {.column}
+```{r}
+OISST1 %>% 
+  filter(site %in% c("Med", "WA"), 
+         year(t) == 2009) %>% 
+  tail()
+```
+:::
+:::
+
+## `select()` variable (column)
+
+-   If we load data with columns we don't need, we may `select()` those we do
+-   There are many ways to do this and none are technically better or faster
+-   It is up to the user to find a favourite technique
+
+## `select()` variable (column)
+
+```{r, eval=FALSE}
+# Select columns individually by name
+OISST1 %>% 
+  select(site, t, temp)
+
+# Select all columns between site and temp like a sequence
+OISST1 %>% 
+  select(site:temp)
+
+# Select all columns except those stated individually
+OISST1 %>% 
+  select(-t, -temp)
+
+# Select all columns except those within a given sequence
+  # Note that the '-' goes outside of a new set of brackets
+  # that are wrapped around the sequence of columns to remove
+OISST1 %>% 
+  select(-(site:temp))
+```
+
+## `select()` variable (column)
+
+```{r, eval=FALSE}
+# Change up order by specifying individual columns
+OISST1 %>% 
+  select(temp, t, site)
+
+# Use the everything function to grab all columns 
+# not already specified
+OISST1 %>% 
+  select(t, everything())
+
+# Or go bananas and use all of the rules at once
+  # Remember, when dealing with tidy data,
+  # everything may be interchanged
+OISST1 %>% 
+  select(temp:t, everything(), -site)
+```
+
+## `mutate()` new variable (column)
+
+When performing data analysis/statistics it is likely necessary to create new values not in the raw data. `arrange()`, `filter()`, and `select()` prepare us to create new data, but do not do so themselves. For this we use `mutate()`. We must however be very mindful that `mutate()` is only useful if we want to create new variables (columns) that are a function of one or more *existing* columns. This means that any column we create with `mutate()` will always have the same number of rows as the dataframe we are working with. 
+
+## `mutate()` new variable (column)
+
+-   Tell R the name of the column and what to put in it
+-   Here we create `kelvin` by converting the `temp` column into Kelvin (°K) (i.e. °C+273.15)
+
+```{r}
+OISST1 %>% mutate(kelvin = temp + 273.15) %>% head()
+```
+
+<!-- This is a very basic example and `mutate()` is capable of much more than simple addition. We will get into some more exciting examples during the next session. -->
+
+## `summarise()` data (row+column)
+
+To create new columns we use `mutate()`, but to calculate any sort of summary/statistic from a column that will return fewer rows than the dataframe has we will use `summarise()`. This makes `summarise()` much more powerful than the other functions in this section, but because it is able to do more, it can also be more unpredictable, making it potentially more challenging to use. We will almost always use this function in our work flows however so it behoves us to become well acquainted with it.
+
+## `summarise()` data (row+column)
+
+-   Note how the use of `summarise()` changes the dimensions of the dataframe
+
+::: columns
+::: {.column}
+```{r}
+OISST1 %>% 
+  mutate(mean_temp = mean(temp, na.rm = TRUE)) %>% 
+  head()
+```
+:::
+
+::: {.column}
+```{r}
+OISST1 %>% 
+  summarise(mean_temp = mean(temp, na.rm = TRUE)) %>% 
+  head()
+```
+:::
+:::
+
+## `summarise()` data (row+column)
+
+-   It is possible to perform many analyses at once
+
+```{r tidier-summarise-2}
+OISST1 %>% 
+  summarise(mean_temp = mean(temp, na.rm = TRUE),
+            sd_temp = sd(temp, na.rm = TRUE),
+            min_temp = min(temp, na.rm = TRUE),
+            max_temp = max(temp, na.rm = TRUE))
+```
+
+## Domesticating data
+
+Creating summaries of the *entire* OISST dataset in this way is not appropriate as we should not be combining time series from such different parts of the world. In order to calculate summaries within variables we will need to learn how to use `group_by()`, which in turn will first require us to learn how to chain multiple functions together within a pipe (`%>%`). That is how we will begin the next session for today. Finishing with several tips on how to make our data the tidiest that it may be.
+

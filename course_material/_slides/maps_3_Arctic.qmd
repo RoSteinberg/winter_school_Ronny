@@ -1,0 +1,157 @@
+---
+# title: Mapping the Arctic
+format:
+  revealjs:
+    theme: FACE-IT_pres.scss
+    self-contained: true
+    transition: slide
+editor: source
+---
+
+# Mapping the Arctic {background-color="#008980" style="text-align: center"}
+
+*Robert Schlegel*
+
+```{r maps-3-opts, echo=FALSE}
+knitr::opts_chunk$set(
+  warning = FALSE, 
+  message = FALSE,
+  echo = TRUE,
+  eval = FALSE
+)
+```
+
+## Problem
+
+-   How do we plot maps near the poles more accurately?
+-   What effect does this have on other map layers?
+-   This is time intensive, is there a faster way?
+
+## Solution
+
+-   We must learn more about map projections
+-   We will look at packages that help us project raster layers etc.
+-   **`ggoceanmaps`** provides the full suite of solutions
+
+## Setup
+
+```{r ggmap-load}
+# Load libraries
+library(tidyverse)
+
+# Fixed base map
+map_global_fix <- map_data('world') %>% 
+  rename(lon = long) %>% 
+  mutate(group = ifelse(lon > 180, group+2000, group), # Why +2000?
+         lon = ifelse(lon > 180, lon-360, lon))
+
+# Load data
+
+```
+
+Take a moment to look at the data we loaded. What does it show?
+
+## The Earth is round  
+  
+No matter what you've heard, its not flat. Proof of this is that if it were flat, it would be much easier to plot parts of it on a map! Instead, because the surface of the Earth is curved, we cannot accurately plot it on a computer screen.  
+  
+The way we deal with this is by changing the measurements between longitude/latitude coordinates. The technical word is 'projecting'. The noun is 'projection' or 'projections'. 
+  
+For much of the Earth this is not that noticeable. But for the Arctic it is a big issue.
+
+## Map projections
+
+There are many different sorts of map projections in use. Over tea time I recommend googling them. There are some interesting ones.
+
+```{r, echo=FALSE, eval=TRUE, fig.cap="The Spilhaus projection is oriented around the global ocean."}
+knitr::include_graphics("slide_images/spilhaus_projection.jpeg")
+```
+
+## Map projections
+
+R has many built-in projections, and **`ggplot2`** gives us easy access to many of them.
+
+```{r, eval=FALSE}
+# Type the following in your console,
+# see what comes up as auto-complete suggestions
+# Use the up and down arrows to scroll through
+coord_
+```
+
+## Cartesian projections
+
+-   This is the default coordinate projection  
+-   Basically, it doesn't alter the lon/lat decimal degree coordinates in any way
+
+```{r}
+ggplot() +
+  borders(fill = "grey70", colour = "black") + # The global shape file
+  coord_cartesian() # Numeric sizing for lon/lat 
+```
+## Equal projections
+
+-   This projects numeric x/y (e.g. lon/lat) values the same
+
+```{r}
+ggplot() +
+  borders(fill = "grey70", colour = "black") + # The global shape file
+  coord_equal() # Equal sizing for lon/lat 
+```
+
+## Fixed projections
+
+-   Similar to Fixed projections, but let's the user decide on the ratio.
+
+```{r}
+ggplot() +
+  borders(fill = "grey70", colour = "black") + # The global shape file
+  coord_fixed(ratio = 2) # Ratio (Y divided by X) sizing for lon/lat 
+```
+## Map projections
+
+-   There is also a quick mapping option
+-   This forces straight lines, but runs faster
+
+```{r}
+ggplot() +
+  borders(fill = "grey70", colour = "black") + # The global shape file
+  coord_quickmap() # There is also coord_map, but it is slower and has issues with these data
+```
+
+
+## Map projections
+
+-   We access proper map projections with the `_sf()` range of functions
+-   These use the standard `crs` map projection system
+
+```{r}
+ggplot() +
+  borders(fill = "grey70", colour = "black") + # The global shape file
+  coord_sf() # sf = simple feature
+```
+
+## Polar projections
+
+-   `coord_polar()` does not quite give us what we want
+
+```{r}
+ggplot() +
+  borders(fill = "grey70", colour = "black") + # The global shape file
+  scale_y_reverse() +
+  coord_polar() # A dramatic projection
+```
+## Polar projections
+
+-   We can use 
+
+```{r}
+ggplot(data = fortify(borders(fill = "grey70", colour = "black")),
+       aes(x = long, y = lat)) +
+  coord_map(projection = "ortho", orientation = c(90, 0, 0)) # A dramatic projection
+```
+
+## Projecting layers
+
+## **`ggoceanmaps`**
+
+

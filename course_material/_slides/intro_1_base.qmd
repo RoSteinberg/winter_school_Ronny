@@ -1,0 +1,117 @@
+---
+# title: It which shall not be named
+format:
+  revealjs:
+    theme: FACE-IT_pres.scss
+    self-contained: true
+    transition: slide
+editor: source
+---
+
+# It which shall not be named {background-color="#008980" style="text-align: center"}
+
+*Robert Schlegel*
+
+## But really, why R?
+
+We could extol the virtues of R all day, but let's rather see for ourselves why R is one of the preferred tools for science. 
+
+In this exercise we will be opening a dataset in MS excel and giving ourselves 30 minutes to perform a basic analysis and visualisation. 
+
+Gasp! Yes I know. After all of that and now we are using MS Excel? But trust us, there is method to this madness.
+
+## Dataset
+
+The dataset we are using comes from the NOAA OISST remotely sensed seawater temperature product. It contains time series for pixels from three different regions, each 39 years long.
+
+## Analysis
+
+__Monthly climatology:__ the average temperature for a given month at a given place. 
+
+So in this instance, because we have three time series, we will want 39 total values comprised of January - December monthly means for each site.
+
+_E.g. If a time series is 39 years long, then a climatological December will be the mean temperature of all of the 39 Decembers for which data are available._
+
+## Visualisation
+
+__Dot and line plot:__ A dot for each monthly climatology, connected by a line.
+
+Once the monthly climatologies per site have been calculated, it should be a relatively easy to visualise them as a dot and line plot.
+
+_NB: We want to create one dot and line plot for each site_
+
+## Mission
+
+Your mission, should you choose to accept it:
+
+-   Open the file `sst_NOAA.csv` in MS Excel
+-   Create monthly climatologies for each site
+-   Create a dot and line plot for the climatologies
+
+You will have 30 minutes starting now... 
+
+##
+
+```{r, echo=FALSE}
+library(countdown)
+countdown(minutes = 30, seconds = 0, 
+          start_immediately = TRUE, warn_when = 600, play_sound = TRUE,
+          top = 0, bottom = 0, left = 0, right = 0,
+          margin = "5%", font_size = "8em", update_every = 1)
+```
+
+## Moving forwa**R**d
+
+Using excel may allow one to make small changes quickly, but rapidly becomes laborious when any sophistication is required. 
+
+Now that you've had some time to look at the data and work through the exercise in Excel, let's see how to do it in R.
+
+The few lines of code below make all of the calculations we need in order to produce the results we are after.
+
+## Monthly clims - Prep
+
+The first step in an R workflow (more on this later) should be to load your libraries and then your data.
+
+```{r, message=FALSE, warning=FALSE, echo=TRUE}
+# Load libraries
+library(tidyverse)
+library(lubridate)
+
+# Load data
+sst_NOAA <- read_csv("../data/sst_NOAA.csv")
+```
+
+## Monthly clims - Calculate
+
+After which we perform our anlayses.
+
+```{r, echo=TRUE}
+sst_monthly <- sst_NOAA %>% 
+  mutate(month = month(t, label = T)) %>% 
+  group_by(site, month) %>% 
+  summarise(temp = round(mean(temp, na.rm = T), 3))
+```
+
+## Monthly clims - Visualise  {auto-animate=true}
+
+And finish up with visualisations.
+
+```{r, echo=TRUE}
+ggplot(data = sst_monthly, aes(x = month, y = temp)) +
+  geom_point(aes(colour = site)) +
+  geom_line(aes(colour = site, group = site)) +
+  labs(x = NULL, y = "Temperature (°C)")
+```
+
+## Monthly clims - Visualise  {auto-animate=true}
+
+Which may be iterated on (more on this later).
+
+```{r, echo=TRUE}
+ggplot(data = sst_monthly, aes(x = month, y = temp)) +
+  geom_point(aes(colour = site)) +
+  geom_line(aes(colour = site, group = site)) +
+  labs(x = "", y = "Temperature (°C)") +
+  facet_wrap(~site, ncol = 1) # Create panels
+```
+

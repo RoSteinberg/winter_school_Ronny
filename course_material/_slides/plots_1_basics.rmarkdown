@@ -1,0 +1,154 @@
+---
+# title: Basics of **`ggplot2`**
+format:
+  revealjs:
+    theme: FACE-IT_pres.scss
+    self-contained: true
+    transition: slide
+editor: source
+---
+
+
+# Basics of **`ggplot2`** {background-color="#008980" style="text-align: center"}
+
+*Robert Schlegel*
+
+
+```{r plots-1-opts, echo=FALSE}
+knitr::opts_chunk$set(
+  warning = FALSE, 
+  message = FALSE,
+  echo = TRUE
+)
+```
+
+
+## Problem
+
+* Default R plotting (_Base R_) hasn't advanced much since the 90s
+* Non-intuitive syntax, functions, and arguments
+* Not enough control over final plot
+* Published figures do not look very professional
+
+## Solution
+
+* The **`ggplot2`** package uses the [grammar of graphics](https://link.springer.com/book/10.1007/0-387-28695-0)
+* Is integrated into the **`tidyverse`**
+* Easier syntax with intuitive functions and arguments
+* Massive range of well developed support and extensions
+
+## Setup
+
+We will need the following two packages for the examples in these slides.
+
+
+```{r}
+library(tidyverse) # Contains ggplot2
+
+library(palmerpenguins) # Contains the dataset
+```
+
+
+## Basics
+
+* One figure is made of one chunk of code
+* Starts with `ggplot()`
+* Each line is connected with a `+`
+* Add shapes with `geom` functions
+    * e.g. `geom_point()` adds points
+* Plot skeleton created within `aes()`
+* Arguments assigned like normal functions (e.g. `ggplot(data = penguins)`)
+
+## Basic plot
+
+
+```{r}
+ggplot(data = penguins,
+       aes(x = body_mass_g, y = bill_length_mm)) +
+  geom_point(aes(colour = species))
+```
+
+
+## Focus on `aes()`
+
+* Understand when to use `aes()`
+* Columns from the data go inside `aes()`
+    * e.g. `geom_point(aes(colour = species))`
+* Static values go outside `aes()`
+* Mistakes with `aes()` are common when learning **`ggplot2`** 
+* Good starting point when looking for errors
+
+## Inside `aes()` {auto-animate=true}
+
+
+```{r}
+ggplot(data = penguins,
+       aes(x = body_mass_g, y = bill_length_mm)) +
+  geom_point(aes(colour = island)) # 'island' is a column from 'penguins'
+```
+
+
+## Outside `aes()` {auto-animate=true}
+
+
+```{r}
+ggplot(data = penguins,
+       aes(x = body_mass_g, y = bill_length_mm)) +
+  geom_point(colour = "red") # Make all points red
+```
+
+
+## Outside inside? {auto-animate=true}
+
+
+```{r}
+ggplot(data = penguins,
+       aes(x = body_mass_g, y = bill_length_mm)) +
+  geom_point(aes(colour = "red")) # What is happening here
+```
+
+
+## Inside outside? {auto-animate=true}
+
+
+```{r, error=TRUE}
+ggplot(data = penguins,
+       aes(x = body_mass_g, y = bill_length_mm)) +
+  geom_point(colour = species) # Why does this cause an error?
+```
+
+
+## More than just colour {auto-animate=true}
+
+
+```{r}
+ggplot(data = penguins,
+       aes(x = body_mass_g, y = bill_length_mm)) +
+  geom_point(aes(size = flipper_length_mm, shape = island)) # What else can we add?
+```
+
+
+## Add a geom {auto-animate=true}
+
+
+```{r}
+ggplot(data = penguins,
+       # NB: Arguments passed to first aes() apply to all geoms
+       aes(x = body_mass_g, y = bill_length_mm, colour = species)) +
+  geom_point() +
+  geom_smooth(method = "lm")
+```
+
+
+## Change labels {auto-animate=true}
+
+
+```{r, echo=TRUE, warning=FALSE, message=FALSE}
+ggplot(data = penguins,
+       aes(x = body_mass_g, y = bill_length_mm, colour = species)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  labs(x = "Body mass (g)", y = "Bill length (mm)", colour = "Species") + # Change labels
+  theme(legend.position = "bottom") # Change legend position
+```
+

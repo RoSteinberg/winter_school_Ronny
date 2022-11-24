@@ -1,0 +1,145 @@
+---
+# title: Faceting in **`ggplot2`**
+format:
+  revealjs:
+    theme: FACE-IT_pres.scss
+    self-contained: true
+    transition: slide
+editor: source
+---
+
+# Faceting in **`ggplot2`** {background-color="#008980" style="text-align: center"}
+
+*Robert Schlegel*
+
+```{r plots-2-opts, echo=FALSE}
+knitr::opts_chunk$set(
+  warning = FALSE, 
+  message = FALSE,
+  echo = TRUE
+)
+```
+
+## Problem
+
+* What if the data have multiple categories?
+* What if dots and lines aren't enough?
+* What if we need to combine plots?
+
+## Solution
+
+* We add facets to plots with just one function
+* By using different `geom_*()` we create different plots
+* **`ggpubr`** helps us to combine many different plots
+
+## Setup
+
+We will need the following three packages for the examples in these slides.
+
+```{r, message=FALSE, warning=FALSE, echo=TRUE}
+library(tidyverse) # Contains ggplot2
+
+library(ggpubr) # Helps us to combine figures
+
+library(palmerpenguins) # Contains the dataset
+```
+
+## Basic plot {auto-animate=true}
+
+```{r}
+ggplot(data = penguins,
+       aes(x = body_mass_g, y = bill_length_mm, colour = species)) +
+  geom_point() +
+  geom_smooth(method = "lm")
+```
+
+## Facet wrap {auto-animate=true}
+
+```{r}
+ggplot(data = penguins,
+       aes(x = body_mass_g, y = bill_length_mm, colour = species)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  facet_wrap(~species) # Can take one or two column names
+```
+
+## Facet grid {auto-animate=true}
+
+```{r}
+ggplot(data = penguins,
+       aes(x = body_mass_g, y = bill_length_mm, colour = species)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  facet_grid(island~species) # Takes two or more column names
+```
+
+## Create plot object {auto-animate=true}
+
+```{r}
+# Assign the ggplot2 code to an object name
+lm_1 <- ggplot(data = penguins,
+       aes(x = body_mass_g, y = bill_length_mm, colour = species)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  labs(x = "Body mass (g)", y = "Bill length (mm)", colour = "Species")
+lm_1 # Visualise the plot by calling the object
+```
+
+## Non-linear model
+
+```{r}
+nlm_1 <- ggplot(data = penguins,
+       aes(x = body_mass_g, y = bill_length_mm, colour = species)) +
+  geom_point() +
+  geom_smooth() +
+  labs(x = "Body mass (g)", y = "Bill length (mm)", colour = "Species")
+nlm_1
+```
+
+## Histogram
+
+```{r}
+histogram_1 <- ggplot(data = penguins, 
+                      aes(x = body_mass_g)) + #NB: There is no y-axis value
+  geom_histogram(aes(fill = species), position = "stack", binwidth = 250) +
+  labs(x = "Body mass (g)", fill = "Species") # NB: We use 'fill' here rather than 'colour'
+histogram_1
+```
+
+## Boxplot
+
+```{r}
+box_1 <- ggplot(data = penguins, 
+                aes(x = as.factor(year), # Why 'as.factor()'?
+                    y = body_mass_g)) + 
+  geom_boxplot(aes(fill = species)) +
+  labs(x = "Year", y = "Body mass (g)", fill = "Species") 
+box_1
+```
+
+## Combine plots
+
+```{r}
+grid_1 <- ggarrange(lm_1, nlm_1, histogram_1, box_1, # The plots to combine 
+                    ncol = 2, nrow = 2, # Set number of rows and columns
+                    labels = c("a)", "b)", "c)", "d)"), # Label each figure
+                    common.legend = TRUE,  # Create common legend
+                    legend = "bottom") # Set legend position
+grid_1
+```
+
+## Save plots
+
+```{r, eval=FALSE}
+# Different file types
+ggsave(plot = grid_1, filename = "figures/grid_1.pdf")
+ggsave(plot = grid_1, filename = "figures/grid_1.png")
+ggsave(plot = grid_1, filename = "figures/grid_1.eps")
+
+# Change dimensions
+ggsave(plot = grid_1, filename = "figures/grid_1.png", width = 10, height = 8)
+
+# Change DPI
+ggsave(plot = grid_1, filename = "figures/grid_1.png", dpi = 600)
+```
+

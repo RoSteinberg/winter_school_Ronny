@@ -1,0 +1,217 @@
+---
+# title: Mapping with **`ggplot2`**
+format:
+  revealjs:
+    theme: FACE-IT_pres.scss
+    self-contained: true
+    transition: slide
+    scrollable: true
+editor: source
+---
+
+# Mapping with **`ggplot2`** {background-color="#008980" style="text-align: center"}
+
+*Robert Schlegel*
+
+```{r maps-1-opts, echo=FALSE}
+knitr::opts_chunk$set(
+  warning = FALSE, 
+  message = FALSE,
+  echo = TRUE
+)
+```
+
+## Problem
+
+* Where do we start?
+* How do we show scale?
+* What if we need to inset a map?
+
+## Solution
+
+* **`tidyverse`** contains default mapping support
+* **`ggsn`** provides code for scale bars
+* Maps are the same as basic plots, so can be combined as `grob`'s
+
+## Setup
+
+```{r map-load}
+library(tidyverse) # Contains most of what we need
+
+library(ggpubr) # For combining figures
+
+library(ggsn) # Contains code to make scale bars
+
+library(palmerpenguins) # Data used in an example
+```
+
+## Default map
+
+```{r}
+earth_1 <- ggplot() +
+  borders(fill = "grey70", colour = "black") + # The global shape file
+  coord_equal() # Equal sizing for lon/lat 
+earth_1
+```
+## Cropping
+
+```{r}
+green_1 <- ggplot() +
+  borders(fill = "grey70", colour = "black") +
+  coord_equal(xlim = c(-75, -10), ylim = c(58, 85)) # Force lon/lat extent
+green_1
+```
+
+## Extract a region
+
+```{r}
+map_data('world') %>% 
+  select(region) %>% 
+  distinct() %>% 
+  arrange(region)
+```
+
+## Extract a region
+
+```{r}
+map_data_green <- map_data('world') %>% 
+  filter(region == "Greenland") # Why '==' and not '='?
+head(map_data_green)
+```
+
+## A new concept?
+
+-   A basic map is the same as a scatterplot with an x and y axis
+-   Compare a dot plot of penguin weight data against a dot plot of the coastline of Greenland
+
+::: columns
+::: {.column}
+Penguin dots:
+
+```{r}
+ggplot(data = penguins, 
+       aes(x = body_mass_g, y = bill_length_mm)) +
+  geom_point()
+```
+:::
+
+::: {.column}
+Greenland coast dots:
+
+```{r}
+ggplot(data = map_data_green, 
+       aes(x = long, y = lat)) +
+  geom_point()
+```
+:::
+:::
+
+## Polygons
+
+-   Dots are not the ideal method for creating maps
+-   For that we want to use polygons
+-   Be careful with these, they can be a bit tricky
+
+## Polygons
+
+```{r}
+green_2 <- ggplot(data = map_data_green, aes(x = long, y = lat)) +
+  geom_polygon(aes(group = group), # What is this doing?
+               fill = "chartreuse4", colour = "black") # Note these are outside of aes() 
+green_2
+```
+
+## Specific labels
+
+-   A map is almost always going to need some labels and other visual cues
+-   The following code chunk shows how we can add one label at a time
+-   This is useful if each label needs to be different from the others
+-   We also see that some text labels have `\n` in them
+-   This is how we tell R to return down a line
+
+## Specific labels
+
+```{r}
+green_3 <- green_2 +
+    annotate("text", label = "Greenland", 
+           x = -40, y = 75.0, size = 7.0, fontface = "bold.italic") +
+  annotate("text", label = "North\nAtlantic\nOcean", 
+           x = -20, y = 64.0, size = 5.0,  angle = 330, colour = "navy") +
+  annotate("label", label = "Baffin\nBay", 
+           x = -62, y = 70, size = 5.0, fill = "springgreen") +
+  annotate("segment", 
+           x = -50, xend = -30, y = 73, yend = 73)
+green_3
+```
+
+## Scale bars
+
+-   There is no default scale bar function in the **`tidyverse`**
+-   **`ggsn`** is devoted to adding scale bars and North arrows for **`ggplot2`** 
+-   There are heaps of options so we'll just focus on one of them for now
+-   We may see the list of available North arrow shapes by running `northSymbols()`.
+
+## Scale bars
+
+```{r}
+green_4 <- green_3 +
+  scalebar(data = map_data_green, location = "bottomleft", # Set location of bar,
+           dist = 500, dist_unit = "km", transform = TRUE, # Size of scale bar
+           st.size = 4, height = 0.03, st.dist = 0.04) # Set particulars
+green_4
+```
+
+## Insetting
+
+-   **`ggplot2`** objects are different from normal objects (i.e. dataframes)
+-   They have their own way of storing and accessing data
+-   To convert to the **`ggplot2`** format we convert it into a `grob` 
+-   Once converted, we may add anything to our figure/map wherever we please
+-   Both of these steps are accomplished with the single function `annotation_custom()`
+-   This is also a good way to add logos or any other sort of image to a map/figure
+-   It's even possible to add GIFs (see Bonus content)
+
+## Insetting
+
+```{r}
+earth_2 <- earth_1 + 
+  geom_rect(aes(xmin = -75, xmax = -10, ymin = 58, ymax = 85),
+            fill = NA, colour = "red") +
+  theme_void() # What does this do?
+earth_2
+```
+
+## Insetting
+
+```{r}
+green_5 <- green_4 +
+  annotation_custom(grob = ggplotGrob(earth_2), # Convert the earth plot to a grob
+                    xmin = -30, xmax = -10,
+                    ymin = 76, ymax = 84)
+green_5
+```
+
+## Rounding it out
+
+```{r}
+green_final <- green_5 +
+  scale_x_continuous(breaks = seq(-60, -20, 20),
+                     labels = c("60°W", "40°W", "20°w"),
+                     position = "bottom") +
+  scale_y_continuous(breaks = seq(60, 80, 10),
+                     labels = c("60°N", "70°N", "80°N"),
+                     position = "right") +
+  labs(x = "", y = "") +
+  theme_bw()
+green_final
+```
+
+## Rounding it out
+
+-   And lastly we save the fruits of our labours
+
+```{r maps-final-save, eval=FALSE}
+ggsave(plot = sa_final, filename = "figures/green_final.pdf", 
+       height = 6, width = 8)
+```
+

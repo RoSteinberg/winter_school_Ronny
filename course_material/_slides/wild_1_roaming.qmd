@@ -1,0 +1,110 @@
+---
+# title: Roaming data
+format:
+  revealjs:
+    theme: FACE-IT_pres.scss
+    self-contained: true
+    transition: slide
+editor: source
+---
+
+# Roaming data {background-color="#008980" style="text-align: center"}
+
+*Robert Schlegel*
+
+```{r tidy-3-opts, echo=FALSE}
+knitr::opts_chunk$set(
+  warning = FALSE, 
+  message = FALSE,
+  echo = TRUE
+)
+```
+
+## Problem
+
+-   There are a lot of data out there, how do we access them?
+-   Are there tools to help us with this?
+-   What are the policies around this?
+
+## Solution
+
+-   We look at the **R** resources available to us
+-   We go over some example implementations
+-   A brief discussion on access rights is provided
+
+## Setup
+
+```{r}
+library(tidyverse) # All-in-one
+
+# https://cran.r-project.org/web/packages/oceanexplorer/vignettes/oceanexplorer.html
+library(oceanexplorer) # Access World Ocean Atlas (WOA)
+
+# https://bio-oracle.org/code.php
+library(sdmpredictors)
+
+library(rerddap) # For easily downloading subsets of data
+```
+
+## Useful functions
+
+```{r}
+
+```
+
+## NOAA
+
+```{r}
+OISST_sub_dl <- function(time_df){
+  OISST_dat <- griddap(datasetx = "ncdcOisst21Agg_LonPM180", 
+                       url = "https://coastwatch.pfeg.noaa.gov/erddap/", 
+                       time = c(time_df$start, time_df$end), 
+                       zlev = c(0, 0),
+                       longitude = c(110, 118),
+                       latitude = c(-37, -18),
+                       fields = "sst")$data %>% 
+    mutate(time = as.Date(stringr::str_replace(time, "T12:00:00Z", ""))) %>%
+    dplyr::rename(t = time, temp = sst, lon = longitude, lat = latitude) %>%
+    select(lon, lat, t, temp) %>%
+    na.omit()
+}
+
+# Download dates
+dates_df <- data.frame(start = "2000-01-01",
+                       end = "2000-01-01")
+
+# Download
+OISST_2000 <- OISST_sub_dl(dates_df)
+save(OISST_2000, file = "../data/OISST_2000.RData")
+```
+
+
+## World Ocean Atlas
+
+-   The [World Ocean Atlas (WOA)](https://www.ncei.noaa.gov/products/world-ocean-atlas) provides quick access
+
+```{r, eval=FALSE}
+# Use the auto-complete menu to read what each function does
+# NB: This takes several minutes to run
+winter_temp <- get_NOAA(var = "temperature", spat_res = 1, av_period = "winter")
+save(winter_temp, file = "../data/winter_temp.RData")
+```
+
+## Plot a layer
+
+```{r, eval=FALSE}
+plot_NOAA(WA_temp)
+```
+
+## Bio-oracle
+
+```{r}
+# Explore datasets in the package
+list_datasets()
+
+# Explore layers in a dataset
+BO_layers <- list_layers(datasets = "Bio-ORACLE")
+
+# Average surface temperature
+surface_temp <- load_layers("BO22_tempmean_ss")
+```

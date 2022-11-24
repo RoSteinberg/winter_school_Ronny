@@ -1,0 +1,217 @@
+---
+# title: Colours and stats in **`ggplot2`**
+format:
+  revealjs:
+    theme: FACE-IT_pres.scss
+    self-contained: true
+    transition: slide
+editor: source
+---
+
+# Colours and stats in **`ggplot2`** {background-color="#008980" style="text-align: center"}
+
+*Robert Schlegel*
+
+```{r plots-3-opts, echo=FALSE}
+knitr::opts_chunk$set(
+  warning = FALSE, 
+  message = FALSE,
+  echo = TRUE
+)
+```
+
+## Overview
+
+Now that we have seen the basics of **`ggplot2`**, let's take a moment to delve further into the beauty of our figures. It may sound vain at first, but the colour palette of a figure is actually very important. This is for two main reasons. The first being that a consistent colour palette looks more professional. But most importantly it is necessary to have a good colour palette because it makes the information in our figures easier to understand. The communication of information to others is central to good science.
+
+
+## Problem
+
+* Standard colours don't look great
+* Respect existing philosophy on colour palettes
+* Plots alone do not communicate statistics
+
+## Solution
+
+* Using **`RColorBrewer`** gives us more control
+* Developed colour palettes are available in **`ggplot2`**
+* Statistics may be plotted directly with **`ggpubr`**
+
+## Setup
+
+We will need the following four packages for the examples in these slides.
+
+```{r, message=FALSE, warning=FALSE, echo=TRUE}
+library(tidyverse) # Contains ggplot2
+
+library(ggpubr) # Helps us to combine figures
+
+# Load RColorBrewer - provides more colouring options
+library(RColorBrewer)
+
+# Load Palmer penguins - contains dataset
+library(palmerpenguins)
+```
+
+## **`RColorBrewer`**
+
+Central to the purpose of **`ggplot2`** is the creation of beautiful figures. 
+For this reason there are many built in functions that we may use in order to have precise control over the colours we use, as well as additional packages that extend our options even further. 
+The **`RColorBrewer`** package should have been installed on your computer and activated automatically when we installed and activated the **`tidyverse`**. 
+We will use this package for its lovely colour palettes, which may be found in 'colorPaletteCheatsheet.pdf'.
+
+## Continuous colour scales {auto-animate=true}
+
+```{r}
+ggplot(data = penguins,
+       aes(x = body_mass_g, y = bill_length_mm)) +
+  geom_point(aes(colour = bill_depth_mm))
+```
+
+## Continuous colour scales {auto-animate=true}
+
+```{r}
+ggplot(data = penguins,
+       aes(x = body_mass_g, y = bill_length_mm)) +
+  geom_point(aes(colour = bill_depth_mm)) +
+  scale_colour_distiller() # Change the continuous variable colour palette
+```
+
+## Continuous colour scales {auto-animate=true}
+
+```{r}
+ggplot(data = penguins,
+       aes(x = body_mass_g, y = bill_length_mm)) +
+  geom_point(aes(colour = bill_depth_mm)) +
+  scale_colour_distiller(palette = "Spectral") # Choose a preset palette
+```
+## Continuous colour scales {auto-animate=true}
+
+```{r}
+ggplot(data = penguins,
+       aes(x = body_mass_g, y = bill_length_mm)) +
+  geom_point(aes(colour = bill_depth_mm)) +
+  scale_colour_viridis_c(option = "D") # Viridis colour palette
+```
+
+## Discrete colour scales {auto-animate=true}
+
+```{r}
+ggplot(data = penguins,
+       aes(x = body_mass_g, y = bill_length_mm)) +
+  geom_point(aes(colour = as.factor(year))) +
+  scale_colour_brewer() # This is the different function
+```
+
+## Discrete colour scales {auto-animate=true}
+
+```{r}
+ggplot(data = penguins,
+       aes(x = body_mass_g, y = bill_length_mm)) +
+  geom_point(aes(colour = as.factor(year))) +
+  scale_colour_brewer(palette = "Set1") # Here I used "Set1", but use what you like
+```
+## Discrete colour scales {auto-animate=true}
+
+```{r}
+ggplot(data = penguins,
+       aes(x = body_mass_g, y = bill_length_mm)) +
+  geom_point(aes(colour = as.factor(year))) +
+  scale_colour_viridis_d(option = "A") # Viridis colour palette
+```
+
+## Make your own palettes
+
+This is all well and good. But didn't we claim that this should give us complete control over our colours? So far it looks like it has just given us a few more palettes to use. And that's nice, but it's not 'infinite choices'. That is where the Internet comes to our rescue. There are many places we may go to for support in this regard. The following links, in descending order, are very useful. And fun!
+
+-   <http://tristen.ca/hcl-picker/#/hlc/6/0.95/48B4B6/345363>
+-   <http://tools.medialab.sciences-po.fr/iwanthue/index.php>
+-   <http://jsfiddle.net/d6wXV/6/embedded/result/>
+
+I find the first link the easiest to use. But the second and third links are better at generating discrete colour palettes. During the following exercise spend several minutes playing with the different websites and decide for yourself which one(s) you like.
+
+## Continuous palettes {auto-animate=true}
+
+```{r brew-7, warning=FALSE}
+ggplot(data = penguins,
+       aes(x = body_mass_g, y = bill_length_mm)) +
+  geom_point(aes(colour = bill_depth_mm)) +
+  scale_colour_gradientn(colours = c("#A5A94D", "#6FB16F", "#45B19B",
+                                    "#59A9BE", "#9699C4", "#CA86AD"))
+```
+
+## Continuous palettes {auto-animate=true}
+
+```{r brew-8, warning=FALSE}
+ggplot(data = penguins,
+       aes(x = body_mass_g, y = bill_length_mm)) +
+  geom_point(aes(colour = as.factor(sex))) +
+  scale_colour_manual(values = c("#A5A94D", "#9699C4"), # How to use custom palette
+                      labels = c("female", "male", "other")) + # How to change the legend text
+  labs(colour = "Sex") # How to change the legend title
+```
+
+## Plotting stats
+
+-   `ggpubr` contains functions to seamless plot statistics on our figures
+-   `compare_means()` compares means of two (t-test) or more (ANOVA) groups of values 
+-   `stat_compare_means()` is designed to be integrated directly into `ggplot2` code
+
+## `compare_means()`
+
+```{r}
+# t-test
+compare_means(bill_length_mm~sex, data = penguins, method = "t.test")
+
+# ANOVA
+compare_means(bill_length_mm~species, data = penguins, method = "anova")
+```
+
+## `stat_compare_means()` {auto-animate=true}
+
+```{r}
+ggplot(data = penguins, aes(x = species, y = bill_length_mm)) +
+  geom_boxplot(aes(fill = species), show.legend = F) +
+  stat_compare_means(method = "anova")
+```
+
+## `stat_compare_means()` {auto-animate=true}
+
+```{r box-2, warning=FALSE, message=FALSE}
+ggplot(data = penguins, aes(x = species, y = bill_length_mm)) +
+  geom_boxplot(aes(fill = species), colour = "grey40", show.legend = F) +
+  stat_compare_means(method = "anova", aes(label = paste0("p ", ..p.format..)), label.x = 2) +
+  theme_bw()
+```
+
+## Further applications
+
+As mentioned above, these functions may be used with paired tests, non-parametric tests, and multiple mean tests. These outputs have mates in the `ggplot2` sphere and so may be visualised with relative ease. The following is an example of how to do this with a multiple mean (ANOVA) test.
+
+## Multiple means
+
+```{r}
+# First create a list of comparisons to feed into our figure
+penguins_levels <- levels(penguins$species)
+my_comparisons <- list(c(penguins_levels[1], penguins_levels[2]), 
+                       c(penguins_levels[2], penguins_levels[3]),
+                       c(penguins_levels[1], penguins_levels[3]))
+
+# Then we stack it all together
+ggplot(data = penguins, aes(x = species, y = bill_length_mm)) +
+  geom_boxplot(aes(fill  = species), colour = "grey40", show.legend = F) +
+  stat_compare_means(method = "anova", colour = "grey50",
+                     label.x = 1.8, label.y = 32) +
+  # Add pairwise comparisons p-value
+  stat_compare_means(comparisons = my_comparisons,
+                     label.y = c(62, 64, 66)) +
+  # Perform t-tests between each group and the overall mean
+  stat_compare_means(label = "p.signif", 
+                     method = "t.test",
+                     ref.group = ".all.") + 
+  # Add horizontal line at base mean
+  geom_hline(yintercept = mean(penguins$bill_length_mm, na.rm = T), linetype = 2) + 
+  labs(y = "Bill length (mm)", x = NULL) +
+  theme_bw()
+```
+

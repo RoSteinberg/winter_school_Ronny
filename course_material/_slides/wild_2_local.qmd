@@ -1,0 +1,46 @@
+---
+# title: Local data
+format:
+  revealjs:
+    theme: FACE-IT_pres.scss
+    self-contained: true
+    transition: slide
+editor: source
+---
+
+# Local data {background-color="#008980" style="text-align: center"}
+
+*Robert Schlegel*
+
+```{r tidy-3-opts, echo=FALSE}
+knitr::opts_chunk$set(
+  warning = FALSE, 
+  message = FALSE,
+  echo = TRUE
+)
+```
+
+## Problem
+
+-   Now that we can access data, how do we manage them?
+-   Are there tools to help us with this?
+-   How can we perform more complex analyses?
+
+## Solution
+
+-   We will go more in depth into advanced workflows
+-   The most commonly used tools are discussed
+-   A few examples of applied statistics are provided
+
+## Setup
+
+```{r}
+library(tidyverse) # All-in-one
+```
+
+## Expand
+
+## Applied statistics
+
+<!-- Perform an ANOVA and show how to filter out non-significant results -->
+
