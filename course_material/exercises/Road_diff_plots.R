@@ -45,8 +45,8 @@ Temp_diff <-
                               'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'),
                    labels = c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
                               'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')) +
-  scale_color_brewer(palette = 'Set1')+
-  theme_bw()
+  scale_color_brewer(palette = 'Paired')+
+  theme_pubclean()
 
 
 # Secchi depth diffirence ------------------------------------------------------
@@ -86,8 +86,8 @@ Secc_diff <-
                               'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'),
                    labels = c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
                               'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')) +
-  scale_color_brewer(palette = 'Set1')+
-  theme_bw()
+  scale_color_brewer(palette = 'Paired')+
+  theme_pubclean()
 
 # Group both figures
 
@@ -101,7 +101,7 @@ ggarrange(Temp_diff, Secc_diff,
           common.legend = TRUE,
           # Set legend position
           legend = "bottom")
-
+road
 # Save the figure ------------------------------------------------------------
 
 ggsave(road, filename = "figures/Road_diff.png", width = 10, height = 7, dpi = 600)
